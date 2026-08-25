@@ -1,4 +1,4 @@
-const User = require('../models/user'); // Capital 'U' standard convention hai
+const User = require('../models/User'); // Capital 'U' standard convention hai
 const bcrypt = require('bcryptjs');
 const OTP = require('../models/OTP');
 const { sendOTPEmail } = require('../utils/email'); 
