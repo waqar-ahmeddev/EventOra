@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-   baseURL: import.meta.env.VITE_API_BASE_URL || 'https://eventora-production-7f78.up.railway.app'
+   baseURL: import.meta.env.VITE_API_BASE_URL || 'https://eventora-production-7f78.up.railway.app/api'
 });
 
 api.interceptors.request.use((config) => {
