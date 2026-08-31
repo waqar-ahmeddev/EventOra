@@ -7,7 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
-import PaymentSuccess from './pages/PaymentSucess';
+import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailed from './pages/PaymentFailed';
 
 function App() {
@@ -15,7 +15,7 @@ function App() {
         <Router>
             <div className="min-h-screen bg-gray-50 flex flex-col">
                 <Navbar />
-                <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/events/:id" element={<EventDetail />} />
