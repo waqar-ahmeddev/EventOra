@@ -6,12 +6,12 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const authRoutes = require('./routes/auth');
-const eventRoutes = require('./routes/events');
-const bookingRoutes = require('./routes/bookings');
+const eventRoutes = require('./routes/event');
+const bookingRoutes = require('./routes/booking');
 
 const app = express();
 
-// Middleware
+// Middlewarenpm run
 app.use(cors());
 app.use(express.json());
 
@@ -25,5 +25,10 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/eventora')
   .then(() => console.log('MongoDB Connected'))
   .catch(err => console.error('MongoDB Connection Error:', err));
 
+// const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
