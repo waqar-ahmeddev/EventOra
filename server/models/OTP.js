@@ -13,6 +13,10 @@ const otpSchema = new mongoose.Schema({
         enum : ['account_verification', 'event_booking'],
         required: true
     },
+    eventId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Event'
+    },
     createdAt: {
         type: Date,
         default: Date.now,
