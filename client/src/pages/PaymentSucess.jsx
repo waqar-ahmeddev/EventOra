@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaCheckCircle } from 'react-icons/fa';
 
-const PaymentSuccess = () => {
+const PaymentSucess = () => {
     return (
         <div className="min-h-[70vh] flex flex-col items-center justify-center p-4">
             <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-md w-full text-center border-t-8 border-green-500 transform transition-all hover:-translate-y-1">
@@ -22,4 +22,4 @@ const PaymentSuccess = () => {
     );
 };
 
-export default PaymentSuccess;
+export default PaymentSucess;

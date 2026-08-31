@@ -7,7 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
-import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentSuccess from './pages/PaymentSucess';
 import PaymentFailed from './pages/PaymentFailed';
 
 function App() {
