@@ -951,43 +951,141 @@
 //     sendBookingEmail,
 //     sendOTPEmail
 // };
-const { Resend } = require('resend');
+// const { Resend } = require('resend');
+// const dotenv = require('dotenv');
+
+// dotenv.config();
+
+// console.log('EMAIL.JS LOADED WITH RESEND');
+
+// const resend = new Resend(process.env.RESEND_API_KEY);
+
+// const sendBookingEmail = async (userEmail, userName, eventTitle) => {
+//     try {
+//         console.log('TRYING BOOKING EMAIL VIA RESEND...');
+        
+//         const data = await resend.emails.send({
+//             from: 'Eventora <onboarding@resend.dev>',
+//             to: [userEmail],
+//             subject: `Booking Confirmed: ${eventTitle}`,
+//             html: `
+//                 <h2>Hi ${userName}!</h2>
+//                 <p>Your booking for the event <strong>${eventTitle}</strong> is successfully confirmed.</p>
+//                 <p>Thank you for choosing Eventora.</p>
+//             `
+//         });
+
+//         console.log('BOOKING EMAIL SENT VIA RESEND:', data);
+//         return data;
+
+//     } catch (error) {
+//         console.error('BOOKING EMAIL ERROR (RESEND):', error);
+//         throw error;
+//     }
+// };
+
+// const sendOTPEmail = async (userEmail, otp, type) => {
+//     console.log('SEND OTP FUNCTION CALLED VIA RESEND');
+//     console.log('Email:', userEmail);
+//     console.log('OTP:', otp);
+
+//     try {
+//         const title =
+//             type === 'account_verification'
+//                 ? 'Verify your Eventora Account'
+//                 : 'Eventora Booking Verification';
+
+//         const msg =
+//             type === 'account_verification'
+//                 ? 'Please use the following OTP to verify your new Eventora account.'
+//                 : 'Please use the following OTP to verify and confirm your event booking.';
+
+//         const data = await resend.emails.send({
+//             from: 'Eventora <onboarding@resend.dev>',
+//             to: [userEmail],
+//             subject: title,
+//             html: `
+//                 <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+//                     <h2>${title}</h2>
+//                     <p>${msg}</p>
+
+//                     <div style="
+//                         margin: 20px auto;
+//                         padding: 15px;
+//                         font-size: 24px;
+//                         font-weight: bold;
+//                         background: #f4f4f4;
+//                         width: max-content;
+//                         letter-spacing: 5px;
+//                     ">
+//                         ${otp}
+//                     </div>
+
+//                     <p style="color: #999;">
+//                         This code expires in 5 minutes.
+//                     </p>
+//                 </div>
+//             `
+//         });
+
+//         console.log('OTP EMAIL SENT SUCCESSFULLY VIA RESEND:', data);
+//         return data;
+
+//     } catch (error) {
+//         console.error('OTP EMAIL ERROR (RESEND):', error);
+//         throw error;
+//     }
+// };
+
+// module.exports = {
+//     sendBookingEmail,
+//     sendOTPEmail
+// };
+const nodemailer = require('nodemailer');
+const mg = require('nodemailer-mailgun-transport');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-console.log('EMAIL.JS LOADED WITH RESEND');
+console.log('EMAIL.JS LOADED WITH MAILGUN HTTP API');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Mailgun Auth Config
+const auth = {
+    auth: {
+        api_key: process.env.MAILGUN_API_KEY,
+        domain: process.env.MAILGUN_DOMAIN
+    }
+};
+
+const transporter = nodemailer.createTransport(mg(auth));
 
 const sendBookingEmail = async (userEmail, userName, eventTitle) => {
     try {
-        console.log('TRYING BOOKING EMAIL VIA RESEND...');
-        
-        const data = await resend.emails.send({
-            from: 'Eventora <onboarding@resend.dev>',
-            to: [userEmail],
+        const mailOptions = {
+            from: `Eventora <postmaster@${process.env.MAILGUN_DOMAIN}>`,
+            to: userEmail,
             subject: `Booking Confirmed: ${eventTitle}`,
             html: `
                 <h2>Hi ${userName}!</h2>
                 <p>Your booking for the event <strong>${eventTitle}</strong> is successfully confirmed.</p>
                 <p>Thank you for choosing Eventora.</p>
             `
-        });
+        };
 
-        console.log('BOOKING EMAIL SENT VIA RESEND:', data);
-        return data;
+        console.log('TRYING BOOKING EMAIL VIA MAILGUN...');
+        const info = await transporter.sendMail(mailOptions);
+        console.log('BOOKING EMAIL SENT VIA MAILGUN:', info);
+        return info;
 
     } catch (error) {
-        console.error('BOOKING EMAIL ERROR (RESEND):', error);
+        console.error('BOOKING EMAIL ERROR (MAILGUN):', error);
         throw error;
     }
 };
 
 const sendOTPEmail = async (userEmail, otp, type) => {
-    console.log('SEND OTP FUNCTION CALLED VIA RESEND');
-    console.log('Email:', userEmail);
-    console.log('OTP:', otp);
+    console.log('SEND OTP FUNCTION CALLED VIA MAILGUN');
+    console.log('Sending OTP to:', userEmail);
 
     try {
         const title =
@@ -1000,9 +1098,9 @@ const sendOTPEmail = async (userEmail, otp, type) => {
                 ? 'Please use the following OTP to verify your new Eventora account.'
                 : 'Please use the following OTP to verify and confirm your event booking.';
 
-        const data = await resend.emails.send({
-            from: 'Eventora <onboarding@resend.dev>',
-            to: [userEmail],
+        const mailOptions = {
+            from: `Eventora <postmaster@${process.env.MAILGUN_DOMAIN}>`,
+            to: userEmail,
             subject: title,
             html: `
                 <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
@@ -1026,13 +1124,15 @@ const sendOTPEmail = async (userEmail, otp, type) => {
                     </p>
                 </div>
             `
-        });
+        };
 
-        console.log('OTP EMAIL SENT SUCCESSFULLY VIA RESEND:', data);
-        return data;
+        console.log('TRYING TO SEND OTP EMAIL VIA MAILGUN...');
+        const info = await transporter.sendMail(mailOptions);
+        console.log('OTP EMAIL SENT SUCCESSFULLY VIA MAILGUN:', info);
+        return info;
 
     } catch (error) {
-        console.error('OTP EMAIL ERROR (RESEND):', error);
+        console.error('OTP EMAIL ERROR (MAILGUN):', error);
         throw error;
     }
 };
