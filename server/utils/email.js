@@ -841,62 +841,153 @@
 //     sendBookingEmail,
 //     sendOTPEmail
 // };
-const nodemailer = require('nodemailer');
+// const nodemailer = require('nodemailer');
+// const dotenv = require('dotenv');
+// const dns = require('dns');
+
+// dotenv.config();
+
+// console.log('EMAIL.JS LOADED');
+
+// // Custom DNS Lookup function to force IPv4 and bypass Railway IPv6 ENETUNREACH error
+// const customDnsLookup = (hostname, options, callback) => {
+//     return dns.lookup(hostname, { family: 4 }, callback);
+// };
+
+// // Transporter with custom IPv4 lookup handler
+// const transporter = nodemailer.createTransport({
+//     host: 'smtp.gmail.com',
+//     port: 465,
+//     secure: true,
+//     lookup: customDnsLookup, // 👈 Ensures Nodemailer resolves only IPv4 addresses
+//     auth: {
+//         user: process.env.EMAIL_USER,
+//         pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : ''
+//     },
+//     tls: {
+//         rejectUnauthorized: false
+//     }
+// });
+
+// const sendBookingEmail = async (userEmail, userName, eventTitle) => {
+//     try {
+//         const mailOptions = {
+//             from: `"Eventora" <${process.env.EMAIL_USER}>`,
+//             to: userEmail,
+//             subject: `Booking Confirmed: ${eventTitle}`,
+//             html: `
+//                 <h2>Hi ${userName}!</h2>
+//                 <p>Your booking for the event <strong>${eventTitle}</strong> is successfully confirmed.</p>
+//                 <p>Thank you for choosing Eventora.</p>
+//             `
+//         };
+
+//         console.log('TRYING BOOKING EMAIL...');
+//         await transporter.sendMail(mailOptions);
+//         console.log('BOOKING EMAIL SENT');
+
+//     } catch (error) {
+//         console.error('BOOKING EMAIL ERROR:', error);
+//         throw error;
+//     }
+// };
+
+// const sendOTPEmail = async (userEmail, otp, type) => {
+//     console.log('SEND OTP FUNCTION CALLED');
+//     console.log('Email:', userEmail);
+//     console.log('OTP:', otp);
+//     console.log('Type:', type);
+
+//     try {
+//         const title =
+//             type === 'account_verification'
+//                 ? 'Verify your Eventora Account'
+//                 : 'Eventora Booking Verification';
+
+//         const msg =
+//             type === 'account_verification'
+//                 ? 'Please use the following OTP to verify your new Eventora account.'
+//                 : 'Please use the following OTP to verify and confirm your event booking.';
+
+//         const mailOptions = {
+//             from: `"Eventora" <${process.env.EMAIL_USER}>`,
+//             to: userEmail,
+//             subject: title,
+//             html: `
+//                 <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+//                     <h2>${title}</h2>
+//                     <p>${msg}</p>
+
+//                     <div style="
+//                         margin: 20px auto;
+//                         padding: 15px;
+//                         font-size: 24px;
+//                         font-weight: bold;
+//                         background: #f4f4f4;
+//                         width: max-content;
+//                         letter-spacing: 5px;
+//                     ">
+//                         ${otp}
+//                     </div>
+
+//                     <p style="color: #999;">
+//                         This code expires in 5 minutes.
+//                     </p>
+//                 </div>
+//             `
+//         };
+
+//         console.log('TRYING TO SEND OTP EMAIL...');
+//         await transporter.sendMail(mailOptions);
+//         console.log('OTP EMAIL SENT SUCCESSFULLY');
+
+//     } catch (error) {
+//         console.error('OTP EMAIL ERROR:', error);
+//         throw error;
+//     }
+// };
+
+// module.exports = {
+//     sendBookingEmail,
+//     sendOTPEmail
+// };
+const { Resend } = require('resend');
 const dotenv = require('dotenv');
-const dns = require('dns');
 
 dotenv.config();
 
-console.log('EMAIL.JS LOADED');
+console.log('EMAIL.JS LOADED WITH RESEND');
 
-// Custom DNS Lookup function to force IPv4 and bypass Railway IPv6 ENETUNREACH error
-const customDnsLookup = (hostname, options, callback) => {
-    return dns.lookup(hostname, { family: 4 }, callback);
-};
-
-// Transporter with custom IPv4 lookup handler
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    lookup: customDnsLookup, // 👈 Ensures Nodemailer resolves only IPv4 addresses
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : ''
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendBookingEmail = async (userEmail, userName, eventTitle) => {
     try {
-        const mailOptions = {
-            from: `"Eventora" <${process.env.EMAIL_USER}>`,
-            to: userEmail,
+        console.log('TRYING BOOKING EMAIL VIA RESEND...');
+        
+        const data = await resend.emails.send({
+            from: 'Eventora <onboarding@resend.dev>',
+            to: [userEmail],
             subject: `Booking Confirmed: ${eventTitle}`,
             html: `
                 <h2>Hi ${userName}!</h2>
                 <p>Your booking for the event <strong>${eventTitle}</strong> is successfully confirmed.</p>
                 <p>Thank you for choosing Eventora.</p>
             `
-        };
+        });
 
-        console.log('TRYING BOOKING EMAIL...');
-        await transporter.sendMail(mailOptions);
-        console.log('BOOKING EMAIL SENT');
+        console.log('BOOKING EMAIL SENT VIA RESEND:', data);
+        return data;
 
     } catch (error) {
-        console.error('BOOKING EMAIL ERROR:', error);
+        console.error('BOOKING EMAIL ERROR (RESEND):', error);
         throw error;
     }
 };
 
 const sendOTPEmail = async (userEmail, otp, type) => {
-    console.log('SEND OTP FUNCTION CALLED');
+    console.log('SEND OTP FUNCTION CALLED VIA RESEND');
     console.log('Email:', userEmail);
     console.log('OTP:', otp);
-    console.log('Type:', type);
 
     try {
         const title =
@@ -909,9 +1000,9 @@ const sendOTPEmail = async (userEmail, otp, type) => {
                 ? 'Please use the following OTP to verify your new Eventora account.'
                 : 'Please use the following OTP to verify and confirm your event booking.';
 
-        const mailOptions = {
-            from: `"Eventora" <${process.env.EMAIL_USER}>`,
-            to: userEmail,
+        const data = await resend.emails.send({
+            from: 'Eventora <onboarding@resend.dev>',
+            to: [userEmail],
             subject: title,
             html: `
                 <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
@@ -935,14 +1026,13 @@ const sendOTPEmail = async (userEmail, otp, type) => {
                     </p>
                 </div>
             `
-        };
+        });
 
-        console.log('TRYING TO SEND OTP EMAIL...');
-        await transporter.sendMail(mailOptions);
-        console.log('OTP EMAIL SENT SUCCESSFULLY');
+        console.log('OTP EMAIL SENT SUCCESSFULLY VIA RESEND:', data);
+        return data;
 
     } catch (error) {
-        console.error('OTP EMAIL ERROR:', error);
+        console.error('OTP EMAIL ERROR (RESEND):', error);
         throw error;
     }
 };
