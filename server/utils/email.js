@@ -1247,19 +1247,80 @@
 //     sendOTPEmail,
 //     sendBookingEmail
 // };
-const Brevo = require('@getbrevo/brevo');
+// const Brevo = require('@getbrevo/brevo');
+// const dotenv = require('dotenv');
+
+// dotenv.config();
+
+// // Direct class instantiation for @getbrevo/brevo SDK
+// const apiInstance = new Brevo.TransactionalEmailsApi();
+
+// // Set API key configuration
+// apiInstance.setApiKey(
+//     Brevo.TransactionalEmailsApiApiKeys.apiKey,
+//     process.env.BREVO_API_KEY
+// );
+
+// const sendOTPEmail = async (userEmail, otp, type) => {
+//     try {
+//         const title =
+//             type === 'account_verification'
+//                 ? 'Verify your Eventora Account'
+//                 : 'Eventora Booking Verification';
+
+//         const sendSmtpEmail = new Brevo.SendSmtpEmail();
+//         sendSmtpEmail.subject = title;
+//         sendSmtpEmail.htmlContent = `
+//             <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+//                 <h2>${title}</h2>
+//                 <p>Your OTP code is:</p>
+//                 <h1 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h1>
+//                 <p>This code expires in 5 minutes.</p>
+//             </div>
+//         `;
+//         sendSmtpEmail.sender = { name: "Eventora", email: "waqarkhano145@gmail.com" };
+//         sendSmtpEmail.to = [{ email: userEmail }];
+
+//         const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+//         console.log('OTP EMAIL SENT SUCCESSFULLY VIA BREVO:', data);
+//         return data;
+//     } catch (error) {
+//         console.error('BREVO EMAIL ERROR:', error);
+//         throw error;
+//     }
+// };
+
+// const sendBookingEmail = async (userEmail, userName, eventTitle) => {
+//     try {
+//         const sendSmtpEmail = new Brevo.SendSmtpEmail();
+//         sendSmtpEmail.subject = `Booking Confirmed: ${eventTitle}`;
+//         sendSmtpEmail.htmlContent = `
+//             <h2>Hi ${userName}!</h2>
+//             <p>Your booking for the event <strong>${eventTitle}</strong> is successfully confirmed.</p>
+//             <p>Thank you for choosing Eventora.</p>
+//         `;
+//         sendSmtpEmail.sender = { name: "Eventora", email: "waqarkhano145@gmail.com" };
+//         sendSmtpEmail.to = [{ email: userEmail }];
+
+//         const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+//         console.log('BOOKING EMAIL SENT VIA BREVO:', data);
+//         return data;
+//     } catch (error) {
+//         console.error('BOOKING EMAIL ERROR (BREVO):', error);
+//         throw error;
+//     }
+// };
+
+// module.exports = {
+//     sendOTPEmail,
+//     sendBookingEmail
+// };
+const axios = require('axios');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-// Direct class instantiation for @getbrevo/brevo SDK
-const apiInstance = new Brevo.TransactionalEmailsApi();
-
-// Set API key configuration
-apiInstance.setApiKey(
-    Brevo.TransactionalEmailsApiApiKeys.apiKey,
-    process.env.BREVO_API_KEY
-);
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
 const sendOTPEmail = async (userEmail, otp, type) => {
     try {
@@ -1268,45 +1329,63 @@ const sendOTPEmail = async (userEmail, otp, type) => {
                 ? 'Verify your Eventora Account'
                 : 'Eventora Booking Verification';
 
-        const sendSmtpEmail = new Brevo.SendSmtpEmail();
-        sendSmtpEmail.subject = title;
-        sendSmtpEmail.htmlContent = `
-            <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
-                <h2>${title}</h2>
-                <p>Your OTP code is:</p>
-                <h1 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h1>
-                <p>This code expires in 5 minutes.</p>
-            </div>
-        `;
-        sendSmtpEmail.sender = { name: "Eventora", email: "waqarkhano145@gmail.com" };
-        sendSmtpEmail.to = [{ email: userEmail }];
+        const payload = {
+            sender: { name: 'Eventora', email: 'waqarkhano145@gmail.com' },
+            to: [{ email: userEmail }],
+            subject: title,
+            htmlContent: `
+                <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+                    <h2>${title}</h2>
+                    <p>Your OTP code is:</p>
+                    <h1 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h1>
+                    <p>This code expires in 5 minutes.</p>
+                </div>
+            `
+        };
 
-        const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
-        console.log('OTP EMAIL SENT SUCCESSFULLY VIA BREVO:', data);
-        return data;
+        const response = await axios.post(BREVO_API_URL, payload, {
+            headers: {
+                'accept': 'application/json',
+                'api-key': process.env.BREVO_API_KEY,
+                'content-type': 'application/json'
+            }
+        });
+
+        console.log('OTP EMAIL SENT SUCCESSFULLY VIA BREVO API:', response.data);
+        return response.data;
+
     } catch (error) {
-        console.error('BREVO EMAIL ERROR:', error);
+        console.error('BREVO EMAIL ERROR:', error.response ? error.response.data : error.message);
         throw error;
     }
 };
 
 const sendBookingEmail = async (userEmail, userName, eventTitle) => {
     try {
-        const sendSmtpEmail = new Brevo.SendSmtpEmail();
-        sendSmtpEmail.subject = `Booking Confirmed: ${eventTitle}`;
-        sendSmtpEmail.htmlContent = `
-            <h2>Hi ${userName}!</h2>
-            <p>Your booking for the event <strong>${eventTitle}</strong> is successfully confirmed.</p>
-            <p>Thank you for choosing Eventora.</p>
-        `;
-        sendSmtpEmail.sender = { name: "Eventora", email: "waqarkhano145@gmail.com" };
-        sendSmtpEmail.to = [{ email: userEmail }];
+        const payload = {
+            sender: { name: 'Eventora', email: 'waqarkhano145@gmail.com' },
+            to: [{ email: userEmail }],
+            subject: `Booking Confirmed: ${eventTitle}`,
+            htmlContent: `
+                <h2>Hi ${userName}!</h2>
+                <p>Your booking for the event <strong>${eventTitle}</strong> is successfully confirmed.</p>
+                <p>Thank you for choosing Eventora.</p>
+            `
+        };
 
-        const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
-        console.log('BOOKING EMAIL SENT VIA BREVO:', data);
-        return data;
+        const response = await axios.post(BREVO_API_URL, payload, {
+            headers: {
+                'accept': 'application/json',
+                'api-key': process.env.BREVO_API_KEY,
+                'content-type': 'application/json'
+            }
+        });
+
+        console.log('BOOKING EMAIL SENT VIA BREVO API:', response.data);
+        return response.data;
+
     } catch (error) {
-        console.error('BOOKING EMAIL ERROR (BREVO):', error);
+        console.error('BOOKING EMAIL ERROR (BREVO):', error.response ? error.response.data : error.message);
         throw error;
     }
 };
