@@ -1041,103 +1041,141 @@
 //     sendBookingEmail,
 //     sendOTPEmail
 // };
-const nodemailer = require('nodemailer');
-const mg = require('nodemailer-mailgun-transport');
+// const nodemailer = require('nodemailer');
+// const mg = require('nodemailer-mailgun-transport');
+// const dotenv = require('dotenv');
+
+// dotenv.config();
+
+// console.log('EMAIL.JS LOADED WITH MAILGUN HTTP API');
+
+// // Mailgun Auth Config
+// const auth = {
+//     auth: {
+//         api_key: process.env.MAILGUN_API_KEY,
+//         domain: process.env.MAILGUN_DOMAIN
+//     }
+// };
+
+// const transporter = nodemailer.createTransport(mg(auth));
+
+// const sendBookingEmail = async (userEmail, userName, eventTitle) => {
+//     try {
+//         const mailOptions = {
+//             from: `Eventora <postmaster@${process.env.MAILGUN_DOMAIN}>`,
+//             to: userEmail,
+//             subject: `Booking Confirmed: ${eventTitle}`,
+//             html: `
+//                 <h2>Hi ${userName}!</h2>
+//                 <p>Your booking for the event <strong>${eventTitle}</strong> is successfully confirmed.</p>
+//                 <p>Thank you for choosing Eventora.</p>
+//             `
+//         };
+
+//         console.log('TRYING BOOKING EMAIL VIA MAILGUN...');
+//         const info = await transporter.sendMail(mailOptions);
+//         console.log('BOOKING EMAIL SENT VIA MAILGUN:', info);
+//         return info;
+
+//     } catch (error) {
+//         console.error('BOOKING EMAIL ERROR (MAILGUN):', error);
+//         throw error;
+//     }
+// };
+
+// const sendOTPEmail = async (userEmail, otp, type) => {
+//     console.log('SEND OTP FUNCTION CALLED VIA MAILGUN');
+//     console.log('Sending OTP to:', userEmail);
+
+//     try {
+//         const title =
+//             type === 'account_verification'
+//                 ? 'Verify your Eventora Account'
+//                 : 'Eventora Booking Verification';
+
+//         const msg =
+//             type === 'account_verification'
+//                 ? 'Please use the following OTP to verify your new Eventora account.'
+//                 : 'Please use the following OTP to verify and confirm your event booking.';
+
+//         const mailOptions = {
+//             from: `Eventora <postmaster@${process.env.MAILGUN_DOMAIN}>`,
+//             to: userEmail,
+//             subject: title,
+//             html: `
+//                 <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+//                     <h2>${title}</h2>
+//                     <p>${msg}</p>
+
+//                     <div style="
+//                         margin: 20px auto;
+//                         padding: 15px;
+//                         font-size: 24px;
+//                         font-weight: bold;
+//                         background: #f4f4f4;
+//                         width: max-content;
+//                         letter-spacing: 5px;
+//                     ">
+//                         ${otp}
+//                     </div>
+
+//                     <p style="color: #999;">
+//                         This code expires in 5 minutes.
+//                     </p>
+//                 </div>
+//             `
+//         };
+
+//         console.log('TRYING TO SEND OTP EMAIL VIA MAILGUN...');
+//         const info = await transporter.sendMail(mailOptions);
+//         console.log('OTP EMAIL SENT SUCCESSFULLY VIA MAILGUN:', info);
+//         return info;
+
+//     } catch (error) {
+//         console.error('OTP EMAIL ERROR (MAILGUN):', error);
+//         throw error;
+//     }
+// };
+
+// module.exports = {
+//     sendBookingEmail,
+//     sendOTPEmail
+// };
+const Brevo = require('@getbrevo/brevo');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-console.log('EMAIL.JS LOADED WITH MAILGUN HTTP API');
-
-// Mailgun Auth Config
-const auth = {
-    auth: {
-        api_key: process.env.MAILGUN_API_KEY,
-        domain: process.env.MAILGUN_DOMAIN
-    }
-};
-
-const transporter = nodemailer.createTransport(mg(auth));
-
-const sendBookingEmail = async (userEmail, userName, eventTitle) => {
-    try {
-        const mailOptions = {
-            from: `Eventora <postmaster@${process.env.MAILGUN_DOMAIN}>`,
-            to: userEmail,
-            subject: `Booking Confirmed: ${eventTitle}`,
-            html: `
-                <h2>Hi ${userName}!</h2>
-                <p>Your booking for the event <strong>${eventTitle}</strong> is successfully confirmed.</p>
-                <p>Thank you for choosing Eventora.</p>
-            `
-        };
-
-        console.log('TRYING BOOKING EMAIL VIA MAILGUN...');
-        const info = await transporter.sendMail(mailOptions);
-        console.log('BOOKING EMAIL SENT VIA MAILGUN:', info);
-        return info;
-
-    } catch (error) {
-        console.error('BOOKING EMAIL ERROR (MAILGUN):', error);
-        throw error;
-    }
-};
+const apiInstance = new Brevo.TransactionalEmailsApi();
+const apiKey = apiInstance.authentications['apiKey'];
+apiKey.apiKey = process.env.BREVO_API_KEY;
 
 const sendOTPEmail = async (userEmail, otp, type) => {
-    console.log('SEND OTP FUNCTION CALLED VIA MAILGUN');
-    console.log('Sending OTP to:', userEmail);
-
     try {
-        const title =
-            type === 'account_verification'
-                ? 'Verify your Eventora Account'
-                : 'Eventora Booking Verification';
+        const title = type === 'account_verification'
+            ? 'Verify your Eventora Account'
+            : 'Eventora Booking Verification';
 
-        const msg =
-            type === 'account_verification'
-                ? 'Please use the following OTP to verify your new Eventora account.'
-                : 'Please use the following OTP to verify and confirm your event booking.';
+        const sendSmtpEmail = new Brevo.SendSmtpEmail();
+        sendSmtpEmail.subject = title;
+        sendSmtpEmail.htmlContent = `
+            <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+                <h2>${title}</h2>
+                <p>Your OTP code is:</p>
+                <h1 style="background: #f4f4f4; padding: 10px; display: inline-block;">${otp}</h1>
+                <p>This code expires in 5 minutes.</p>
+            </div>
+        `;
+        sendSmtpEmail.sender = { name: "Eventora", email: "waqarkhano145@gmail.com" };
+        sendSmtpEmail.to = [{ email: userEmail }]; // 👈 Dunya ka koi bhi naya user ho, direct OTP jayega!
 
-        const mailOptions = {
-            from: `Eventora <postmaster@${process.env.MAILGUN_DOMAIN}>`,
-            to: userEmail,
-            subject: title,
-            html: `
-                <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
-                    <h2>${title}</h2>
-                    <p>${msg}</p>
-
-                    <div style="
-                        margin: 20px auto;
-                        padding: 15px;
-                        font-size: 24px;
-                        font-weight: bold;
-                        background: #f4f4f4;
-                        width: max-content;
-                        letter-spacing: 5px;
-                    ">
-                        ${otp}
-                    </div>
-
-                    <p style="color: #999;">
-                        This code expires in 5 minutes.
-                    </p>
-                </div>
-            `
-        };
-
-        console.log('TRYING TO SEND OTP EMAIL VIA MAILGUN...');
-        const info = await transporter.sendMail(mailOptions);
-        console.log('OTP EMAIL SENT SUCCESSFULLY VIA MAILGUN:', info);
-        return info;
-
+        const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+        console.log('OTP EMAIL SENT SUCCESSFULLY VIA BREVO:', data);
+        return data;
     } catch (error) {
-        console.error('OTP EMAIL ERROR (MAILGUN):', error);
+        console.error('BREVO EMAIL ERROR:', error);
         throw error;
     }
 };
 
-module.exports = {
-    sendBookingEmail,
-    sendOTPEmail
-};
+module.exports = { sendOTPEmail };
